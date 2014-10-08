@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="head">
+        <title>Votes - #{cpts['title.mailinglist']}</title>
+    </ui:define>
+    <ui:define name="content">
+        <h:form id="listsForm" styleClass="form-padding">
+            <legend>
+                <h:outputText value="#{cpts['nav.mailinglist']}"/>
+            </legend>
+            <h:panelGroup layout="block" class="btn-group" id="buttongroup">
+                <h:panelGroup layout="block" class="btn-group">
+                    <button class="btn btn-default dropdown-toggle #{(listBean.editMode or (listBean.mailingLists.size() == 0)) ? 'disabled' : ''}" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                        <h:outputText value="#{cpts['list.dropdown']} " />
+                        <h:panelGroup class="caret" />
+                    </button>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                        <ui:repeat value="#{listBean.mailingLists}" var="list" transient="true">
+                            <li role="presentation">
+                                <h:commandLink value="#{list.name}" 
+                                               action="#{listBean.setSelectedList(list)}">
+                                    <f:ajax execute="@this" render="@form"/>
+                                </h:commandLink>
+                            </li>
+                        </ui:repeat>
+                    </ul>
+                </h:panelGroup>
+                <h:commandButton value="#{cpts['edit']}"
+                                 action="#{listBean.goInEditMode()}"
+                                 disabled="#{listBean.editMode}"
+                                 class="btn btn-default #{(listBean.editMode or (listBean.selectedList == null)) ? 'disabled' : ''}">
+                    <f:ajax execute="@this" render=":listsForm:buttongroup :listsForm:editListPanel :listsForm:createListPanel"/>
+                </h:commandButton>
+                <h:commandButton value="#{cpts['list.removeList']}"
+                                 action="#{listBean.removeSelectedList}"
+                                 class="btn btn-default #{(listBean.editMode or (listBean.selectedList == null)) ? 'disabled' : ''}">
+                    <f:ajax execute="@this" render="@form"/>
+                </h:commandButton>
+            </h:panelGroup>
+            <br />
+            <br />
+
+            <h:panelGroup id="editListPanel" 
+                          layout="block"
+                          rendered="#{listBean.selectedList != null}" style="width: 70%;">
+                <h:panelGroup  layout="block" class="alert alert-warning"
+                               rendered="#{listBean.editMode}">
+                    <h:outputText value="#{cpts['list.help']}"/>
+                </h:panelGroup>
+                <h:panelGroup layout="block" class="panel panel-default" >
+                    <h:panelGroup layout="block" class="panel-heading">
+                        <h3 class="nomargin"><h:outputText value="#{listBean.selectedList.name}"
+                                                           rendered="#{not listBean.editMode}"/></h3>
+                        <h:inputText value="#{listBean.selectedList.name}"
+                                     rendered="#{listBean.editMode}"
+                                     class="form-control">
+                            <f:ajax event="blur"/>
+                        </h:inputText>
+                    </h:panelGroup>
+                    <p:scrollPanel mode="native" styleClass="panel-body mailinglist"
+                                   rendered="#{not listBean.editMode}">
+                        <ui:repeat rendered="#{listBean.selectedList.mailAdressList.size() > 0}"
+                                   value="#{listBean.selectedList.mailAdressList}" var="adress">
+                            <h:panelGrid columns="1">
+                                <h:outputText value="#{adress}"/>
+                            </h:panelGrid>
+                        </ui:repeat>
+                        <h:outputText rendered="#{empty listBean.selectedList.mailAdressList}" value="#{cpts['list.emptylist']}"
+                                      style="color: #999;"/>
+                    </p:scrollPanel>
+                    <h:panelGroup
+                        rendered="#{listBean.editMode}"
+                        class="panel-body mailinglist"
+                        style="padding: 0px;">
+                        <h:inputTextarea value="#{listBean.selectedList.mailAddresses}" class="form-control mailinglist-input resizable">
+                            <f:ajax event="blur"/>
+                        </h:inputTextarea>
+                        <h:panelGroup layout="block" class="input-group-btn">
+                            <h:commandButton value="#{cpts['confirm']}"
+                                             action="#{listBean.editParticipants()}"
+                                             rendered="#{listBean.editMode}"
+                                             class="btn btn-default pull-right">
+                            </h:commandButton>
+                            <h:commandButton value="#{cpts['cancel']}"
+                                             action="#{listBean.cancelEdits()}"
+                                             rendered="#{listBean.editMode}"
+                                             class="btn btn-default pull-right">
+                            </h:commandButton>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+
+            <h:panelGroup id="createListPanel"
+                          layout="block"
+                          class="input-group col-md-5">
+                <h:inputText id="listNameInput" 
+                             value="#{listBean.listName}" 
+                             class="form-control" >
+                </h:inputText>
+                <h:panelGroup layout="block" class="input-group-btn">
+                    <h:commandButton value="#{cpts['list.addList']}" 
+                                     action="#{listBean.createList}"
+                                     class="btn btn-default"
+                                     disabled="#{listBean.editMode}">
+                        <f:ajax execute="@this listNameInput" render="@form"/>
+                    </h:commandButton>    
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,599 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+    <ui:define name="head"> 
+        <title>Votes - #{cpts['title.edit']}</title>
+        <script type="text/javascript">
+            PrimeFaces.locales['de'] = {
+                closeText: 'Schließen',
+                prevText: 'Zurück',
+                nextText: 'Weiter',
+                monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+                monthNamesShort: ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+                dayNames: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+                dayNamesShort: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam'],
+                dayNamesMin: ['S', 'M', 'D', 'M ', 'D', 'F ', 'S'],
+                weekHeader: 'Woche',
+                firstDay: 1,
+                isRTL: false,
+                showMonthAfterYear: false,
+                yearSuffix: '',
+                timeOnlyTitle: 'Nur Zeit',
+                timeText: 'Zeit',
+                hourText: 'Stunde',
+                minuteText: 'Minute',
+                secondText: 'Sekunde',
+                currentText: 'Aktuelles Datum',
+                ampm: false,
+                month: 'Monat',
+                week: 'Woche',
+                day: 'Tag',
+                allDayText: 'Ganzer Tag'
+            };
+        </script>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="editForm" class="form-horizontal">
+            <f:event listener="#{editBean.validateForm}" type="preValidate" />
+            <!-- basic data -->
+            <h:panelGroup id="pollBasicInfoPanel" layout="block" class="panel-group">
+                <h:panelGroup class="panel panel-default" layout="block">
+                    <!-- header -->
+                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                        <h:outputLabel value="#{(editBean.poll.id == null) ? cpts['poll.newPoll'] : cpts['poll.editPoll']}"/>
+                    </h:panelGroup>
+                    <!-- body -->
+                    <h:panelGroup class="panel-body" layout="block">
+                        <!-- poll title -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel for="pollTitle" 
+                                           value="#{cpts['poll.title']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10" style="width: 60%;">
+                                <h:inputText id="pollTitle" 
+                                             label="#{cpts['poll.title']}"
+                                             value="#{editBean.poll.title}"
+                                             required="true"
+                                             class="form-control">
+                                    <f:validator validatorId="votes.PollTitleValidator"/>
+                                    <f:attribute name="pollId" value="#{editBean.poll.id}"/>
+                                </h:inputText>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- poll description -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel for="pollDescription" 
+                                           value="#{cpts['poll.description']}"
+                                           class="col-sm-2 control-label" />
+                            <h:panelGroup layout="block" class="col-sm-10" style="width: 60%;">
+                                <h:inputTextarea id ="pollDescription"
+                                                 label="#{cpts['poll.description']}"
+                                                 value="#{editBean.poll.description}"
+                                                 required="true"
+                                                 rows="3"
+                                                 class="form-control"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- poll start date -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel for="pollDateStart" 
+                                           value="#{cpts['poll.date.start']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10" style="width: 60%;">
+                                <p:calendar id ="pollDateStart"
+                                            label="#{cpts['poll.date.start']}"
+                                            value="#{editBean.poll.start}"
+                                            locale="#{userBean.locale}"
+                                            maxdate=""
+                                            showOn="button"
+                                            navigator="true"
+                                            pattern="dd-MM-yyyy HH:mm:ss">
+                                    <p:ajax event="dateSelect" process="@this" update=":editForm:pollDateEnd :editForm:pollDateReminder" />
+                                </p:calendar>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- poll end date -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel for="pollDateEnd" 
+                                           value="#{cpts['poll.date.end']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10" style="width: 60%;">
+                                <p:calendar id ="pollDateEnd"  
+                                            label="#{cpts['poll.date.end']}"
+                                            value="#{editBean.poll.end}"
+                                            locale="#{userBean.locale}"
+                                            mindate="#{editBean.poll.start}"
+                                            showOn="button"
+                                            navigator="true"
+                                            pattern="dd-MM-yyyy HH:mm:ss"> 
+                                    <p:ajax event="dateSelect" process="@this" update=":editForm:pollDateReminder" />
+                                </p:calendar>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- poll reminder date -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel for="pollDateReminder" 
+                                           value="#{cpts['poll.date.reminder']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10" style="width: 60%;">
+                                <p:calendar id ="pollDateReminder"
+                                            label="#{cpts['poll.date.reminder']}"
+                                            value="#{editBean.poll.reminderDate}"
+                                            locale="#{userBean.locale}"
+                                            mindate="#{editBean.minReminderDate}"
+                                            maxdate="#{editBean.maxReminderDate}"
+                                            showOn="button"
+                                            navigator="true"
+                                            pattern="dd-MM-yyyy HH:mm:ss"> 
+                                </p:calendar>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- Organizer Panel !-->
+            <h:panelGroup id="pollOrganizerPanel" class="panel-group" layout="block">
+                <h:panelGroup class="panel panel-default" layout="block">
+                    <!-- header -->
+                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                        <h:outputLabel value="#{cpts['poll.organizer']}"/>
+                        <h:commandLink action="#{editBean.toggleOrganizerPanel}" class="pull-right">
+                            <f:ajax execute="@this" render=":editForm:pollOrganizerPanel"/>
+                            <h:panelGroup class="glyphicon #{editBean.organizerPanelShowMore? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
+                        </h:commandLink>
+                    </h:panelGroup>
+
+                    <!-- body -->
+                    <h:panelGroup class="panel-body" layout="block">
+                        <!-- poll creator -->
+                        <h:panelGroup layout="block" class="form-group">
+                            <h:outputLabel for="pollCreator" 
+                                           value="#{cpts['poll.creator']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id="pollCreator" 
+                                              value="#{userBean.organizer.realname} (#{userBean.organizer.email})"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- organizer info -->
+                        <h:panelGroup layout="block" class="form-group">
+                            <h:outputLabel for="pollOrganizer" 
+                                           value="#{cpts['poll.organizer']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id="pollOrganizer"
+                                              value="#{editBean.poll.organizers.size()} #{cpts['poll.organizer']}"/>    
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- show more -->
+                        <h:panelGroup rendered="#{editBean.organizerPanelShowMore}">
+                            <!-- add organizer -->
+                            <h:panelGroup layout="block" class="form-group">
+                                <h:panelGroup class="col-sm-2"/>
+                                <h:panelGroup class="col-sm-7">
+                                    <h:panelGroup layout="block" class="input-group">
+                                        <h:inputText id="newOrganizer" 
+                                                     value="#{editBean.newOrganizer}"
+                                                     class="form-control">
+                                            <f:validator validatorId="votes.OrganizerValidator"/>
+                                        </h:inputText>
+                                        <h:panelGroup class="input-group-btn">
+                                            <h:commandButton value="#{cpts['poll.addOrganizer']}" 
+                                                             action="#{editBean.addOrganizer}"
+                                                             styleClass="btn btn-default">
+                                                <f:ajax execute="@this newOrganizer"
+                                                        render=":editForm:pollOrganizerPanel"/>
+                                            </h:commandButton>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+                            <!-- organizer table -->
+                            <h:panelGroup layout="block" class="form-group">
+                                <h:panelGroup class="col-sm-2"/>
+                                <h:panelGroup class="col-sm-7">
+                                    <h:dataTable id ="pollAdditionalOrganizer" 
+                                                 value="#{editBean.poll.organizers}" 
+                                                 var="organizer"
+                                                 class="table">
+                                        <h:column>
+                                            <f:facet name="header">#{cpts['poll.organizerlist']}</f:facet>
+                                                #{organizer.email}
+                                        </h:column>
+                                        <h:column>
+                                            <h:commandLink
+                                                action="#{editBean.poll.removeOrganizer(organizer)}"
+                                                rendered="#{(organizer ne editBean.poll.creator) and (organizer ne userBean.organizer)}"
+                                                title="#{cpts['poll.removeOrganizer']}">
+                                                <f:ajax render=":editForm:pollOrganizerPanel"/>
+                                                <h:panelGroup class="glyphicon glyphicon-remove"/>
+                                            </h:commandLink>
+                                        </h:column>
+                                    </h:dataTable>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- Particiants Panel !-->
+            <h:panelGroup id="pollParticipantPanel" class="panel-group" layout="block">
+                <h:panelGroup class="panel panel-default" layout="block">
+                    <!-- header -->
+                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                        <h:outputLabel value="#{cpts['poll.participants']}" />
+                        <h:commandLink action="#{editBean.toggleParticipantPanel}" class="pull-right">
+                            <f:ajax execute="@this" render=":editForm:pollParticipantPanel" />
+                            <h:panelGroup class="glyphicon #{editBean.organizerPanelShowMore? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
+                        </h:commandLink>
+                    </h:panelGroup>
+
+                    <!-- body -->
+                    <h:panelGroup class="panel-body" layout="block">
+                        <!-- participant tracking -->
+                        <h:panelGroup layout="block" class="form-group">
+                            <h:outputLabel for="pollParticipationTracking" 
+                                           value="#{cpts['poll.tracking']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup class="checkbox col-sm-10">
+                                <h:selectBooleanCheckbox id="pollParticipationTracking" 
+                                                         value="#{editBean.poll.participationTracking}">
+                                    <f:ajax execute="@this"/>
+                                </h:selectBooleanCheckbox>
+                                <h:outputLabel for="pollParticipationTracking" 
+                                               value="#{cpts['poll.participationTracking']}"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- participant info -->
+                        <h:panelGroup layout="block" class="form-group">
+                            <h:outputLabel for="participants" 
+                                           value="#{cpts['poll.participants']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id="participants"
+                                              value="#{editBean.poll.participants.size()} #{cpts['poll.participants']}"/>    
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- show more -->
+                        <h:panelGroup rendered="#{editBean.participantPanelShowMore}" class="form-group" >
+                            <!-- add participants -->
+                            <h:panelGroup layout="block" class="form-group">
+                                <h:panelGroup class="col-sm-2"/>
+                                <h:panelGroup class="col-sm-7">
+                                    <h:panelGroup layout="block" class="input-group">
+                                        <h:panelGroup class="input-group-btn" layout="block" style="padding-bottom: 20px;">
+                                            <h:commandButton value="#{cpts['poll.loadParticipantList']}"
+                                                             type="button" 
+                                                             onclick="PF('listDialog').show();"
+                                                             styleClass="btn btn-default"/>
+                                            <h:commandButton value="#{cpts['poll.resetParticipant']}" 
+                                                             action="#{editBean.resetParticipants}"
+                                                             styleClass="btn btn-default">
+                                                <f:ajax execute="@this"
+                                                        render=":editForm:pollParticipantPanel"/>
+                                            </h:commandButton>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                    <h:panelGroup layout="block" class="input-group">
+                                        <h:inputText id="newParticipant" 
+                                                     value="#{editBean.newParticipant}" 
+                                                     class="form-control">
+                                            <f:validator validatorId="votes.ParticipantValidator"/>
+                                        </h:inputText>
+                                        <h:panelGroup class="input-group-btn">
+                                            <h:commandButton value="#{cpts['poll.addParticipant']}" 
+                                                             action="#{editBean.addParticipant}"
+                                                             styleClass="btn btn-default">
+                                                <f:ajax execute="@this newParticipant"
+                                                        render=":editForm:pollParticipantPanel"/>
+                                            </h:commandButton>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+
+                            <!-- participant table -->
+                            <h:panelGroup layout="block" class="form-group">
+                                <h:panelGroup class="col-sm-2"/>
+                                <h:panelGroup class="col-sm-7">
+                                    <p:scrollPanel mode="native" 
+                                                   styleClass="#{(editBean.poll.participants.size() > 0)? 'participant-list' : ''}">
+                                        <h:dataTable id ="pollParticipants"
+                                                     value="#{editBean.poll.participants}"
+                                                     var="participant"
+                                                     class="table">
+                                            <h:column>
+                                                <f:facet name="header">#{cpts['poll.participantList']}</f:facet>
+                                                    #{participant.email}
+                                            </h:column>
+                                            <h:column>
+                                                <h:commandLink
+                                                    action="#{editBean.poll.removeParticipant(participant)}"
+                                                    title="#{cpts['poll.removeParticipant']}">
+                                                    <f:ajax render=":editForm:pollParticipantPanel"/>
+                                                    <h:panelGroup class="glyphicon glyphicon-remove"/>
+                                                </h:commandLink>
+                                            </h:column>
+                                        </h:dataTable>
+                                    </p:scrollPanel>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- Poll Items Panel !-->
+            <h:panelGroup id="pollItems" layout="block" class="panel-group">
+                <h:panelGroup class="panel panel-default" layout="block">
+                    <!-- header -->
+                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                        <h:outputLabel value="#{cpts['poll.items']}"/>
+                        <h:commandLink action="#{editBean.togglePollItemPanel}" class="pull-right">
+                            <f:ajax execute="@this" render=":editForm:pollItems"/>
+                            <h:panelGroup class="glyphicon #{editBean.pollItemPanelShowMore? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
+                        </h:commandLink>
+                    </h:panelGroup>
+
+                    <!-- body -->
+                    <h:panelGroup class="panel-body" layout="block">
+                        <!-- poll item info -->
+                        <h:panelGroup layout="block" class="form-group" rendered="#{!editBean.pollItemPanelShowMore}">
+                            <h:outputLabel for="pollElements" 
+                                           value="#{cpts['poll.items']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id="pollElements"
+                                              value="#{editBean.poll.items.size()} #{cpts['poll.items']}"/>    
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- show more -->
+                        <h:panelGroup rendered="#{editBean.pollItemPanelShowMore}">
+                            <c:forEach items="#{editBean.poll.items}" var="item">
+                                <!-- poll item -->
+                                <h:panelGroup layout="block" class="well">
+                                    <!-- remove poll item -->
+                                    <h:commandLink class="panel-title pull-right" 
+                                                   title="#{cpts['poll.removeItem']}"
+                                                   action="#{editBean.poll.removeItem(item)}">
+                                        <f:ajax render=":editForm:pollItems"/>
+                                        <h:panelGroup class="glyphicon glyphicon-remove"/>
+                                    </h:commandLink>
+
+                                    <!-- poll item title -->
+                                    <h:panelGroup layout="block" class="form-group" >
+                                        <h:outputLabel value="#{cpts['poll.items.title']}"
+                                                       class="col-sm-2 control-label"/>
+                                        <h:panelGroup class="col-sm-10" style="width: 60%;">
+                                            <h:inputText value="#{item.title}"
+                                                         class="form-control">
+                                                <f:ajax event="blur"/>
+                                            </h:inputText>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+
+                                    <!-- poll item mode -->
+                                    <h:panelGroup layout="block" class="form-group">
+                                        <h:outputLabel value="#{cpts['poll.items.mode']}"
+                                                       class="col-sm-2 control-label"/>
+                                        <h:panelGroup class="col-sm-10 form-control-static" style="width: 60%">
+                                            <h:selectOneMenu class="form-control" 
+                                                             value="#{item.decisionMode}">
+                                                <f:selectItems value="#{editBean.decisionModi}" 
+                                                               var="mode"
+                                                               itemValue="#{mode}" 
+                                                               itemLabel="#{cpts[mode.label]}" />
+                                                <f:ajax render="@this pollItems" 
+                                                        event="change"/>
+                                            </h:selectOneMenu>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                    
+                                    <!-- allow own items -->
+                                    <h:panelGroup layout="block" class="form-group" rendered="#{!item.yesNo}">
+                                        <h:outputLabel for="pollOwnOptions" 
+                                                       value="#{cpts['poll.item.ownOption']}"
+                                                       class="col-sm-2 control-label"/>
+                                        <h:panelGroup class="checkbox col-sm-10">
+                                            <h:selectBooleanCheckbox id="pollOwnOptions" 
+                                                value="#{item.allowOwnOptions}">
+                                                <f:ajax execute="@this"/>
+                                            </h:selectBooleanCheckbox>
+                                            <h:outputLabel for="pollOwnOptions" 
+                                                value="#{cpts['poll.item.allowOwnOption']}"/>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+
+                                    <!-- poll item type -->
+                                    <h:panelGroup layout="block" class="form-group">
+                                        <h:outputLabel value="#{cpts['poll.items.type']}"
+                                                       class="col-sm-2 control-label"/>
+                                        <h:panelGroup class="col-sm-10 form-control-static" style="width: 60%">
+                                            <h:selectOneMenu class="form-control" value="#{item.type}" 
+                                                             valueChangeListener="#{editBean.itemTypeChanged}">
+                                                <f:selectItems value="#{editBean.itemTypes}" 
+                                                               var="type"
+                                                               itemValue="#{type}" 
+                                                               itemLabel="#{cpts[type.label]}"/>
+                                                <f:attribute name="item" 
+                                                             value="#{item}"/>
+                                                <f:ajax execute="@this" 
+                                                        render="@this pollItems" 
+                                                        event="change"/>
+                                            </h:selectOneMenu>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+
+                                    <!-- poll item choices -->
+                                    <h:panelGroup layout="block" 
+                                                  class="form-group" 
+                                                  rendered="#{item.mofN}">
+                                        <h:outputLabel value="#{cpts['poll.items.count']}" 
+                                                       class="col-sm-2 control-label"/>
+                                        <h:panelGroup class="col-sm-10" 
+                                                      style="width: 60%;">
+                                            <h:inputText value="#{item.m}" 
+                                                         class="form-control">
+                                                <f:ajax render=":editForm:pollItems" 
+                                                        event="blur"/>
+                                            </h:inputText>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+
+
+                                    <c:forEach items="#{item.options}" var="option" >
+                                        <h:panelGroup layout="block" class="panel panel-default">
+                                            <h:panelGroup class="panel-body">
+                                                <h:commandLink action="#{item.removeOption(option)}"
+                                                               class="panel-title pull-right"
+                                                               style="padding-right: 20px;"
+                                                               rendered="#{(item.options.size() > item.m) and !item.yesNo and (item.options.size() > 2)}">
+                                                    <f:ajax render="pollItems"/>
+                                                    <h:panelGroup class="glyphicon glyphicon-remove"/>
+                                                </h:commandLink>
+                                                <h:panelGroup layout="block" class="form-group">
+                                                    <h:panelGroup layout="block" class="form-group">
+                                                        <h:outputLabel value="#{cpts['poll.option']}"
+                                                                       class="col-sm-2 control-label"/>
+                                                        <h:panelGroup class="col-sm-4" style="width: 60%;">
+                                                            <h:inputText value="#{option.shortName}"
+                                                                         class="form-control"
+                                                                         disabled="#{item.yesNo}">
+                                                                <f:ajax event="blur"/>
+                                                            </h:inputText>
+                                                        </h:panelGroup>
+
+                                                    </h:panelGroup>
+                                                    <h:panelGroup layout="block" class="form-group">
+                                                        <h:outputLabel value="#{cpts['poll.option.description']}"
+                                                                       class="col-sm-2 control-label"/>
+                                                        <h:panelGroup class="col-sm-4" style="width: 60%;">
+                                                            <h:inputTextarea value="#{option.description}" 
+                                                                             class="form-control" rows="3">
+                                                                <f:ajax event="blur"/>
+                                                            </h:inputTextarea>
+                                                        </h:panelGroup>
+                                                    </h:panelGroup>
+                                                </h:panelGroup>
+                                            </h:panelGroup>
+                                        </h:panelGroup>
+                                    </c:forEach>
+
+                                    <!-- add item option -->
+                                    <h:panelGroup>
+                                        <h:commandLink class="panel-title" 
+                                                       action="#{item.createOption}"
+                                                       rendered="#{!item.yesNo}">
+                                            <f:ajax render="pollItems"/>
+                                            <h:panelGroup class="glyphicon glyphicon-plus" style="padding: 10px"/>
+                                            <h:outputText value="#{cpts['poll.addOption']}" />
+                                        </h:commandLink>
+                                    </h:panelGroup>
+                                </h:panelGroup> 
+                            </c:forEach>
+
+                            <!-- add poll item -->
+                            <h:panelGroup class="pull-right">
+                                <h:commandLink class="panel-title" 
+                                               action="#{editBean.poll.createItem}">
+                                    <f:ajax render="pollItems"/>
+                                    <h:panelGroup class="glyphicon glyphicon-plus" style="padding: 10px"/>
+                                    <h:outputText value="#{cpts['poll.addItem']}" />
+                                </h:commandLink>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- Buttons !-->
+            <h:panelGroup class="navbar-right form-padding">
+                <h:commandButton action="overview.xhtml?faces-redirect=true" 
+                                 value="#{cpts['cancel']}"
+                                 immediate="true"
+                                 class="btn btn-default vote-cancel-margin"/>
+                <h:commandButton action="#{editBean.previewPoll}" 
+                                 value="#{cpts['poll.preview']}"
+                                 class="btn btn-default"/>
+            </h:panelGroup>
+
+            <!-- load participant list dialog -->
+            <p:dialog header="#{cpts['poll.loadParticipantList']}"
+                      widgetVar="listDialog" 
+                      modal="true" 
+                      styleClass="panel panel-default load-participants-dialog">
+                <h:panelGroup id="selectListPanel">
+                    <h:panelGroup layout="block" class="btn-group">
+                        <h:panelGroup layout="block" class="btn-group">
+                            <button class="btn btn-default dropdown-toggle #{empty editBean.mailingLists? 'disabled' : ''}" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                <h:outputText value="#{cpts['list.dropdown']} " />
+                                <h:panelGroup class="caret" />
+                            </button>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                <ui:repeat value="#{editBean.mailingLists}" var="list" transient="true">
+                                    <li role="presentation">
+                                        <h:commandLink value="#{list.name}" 
+                                                       action="#{editBean.selectParticipantList(list)}">
+                                            <f:ajax execute="@this" render=":editForm:selectListPanel"/>
+                                        </h:commandLink>
+                                    </li>
+                                </ui:repeat>
+                            </ul>
+                        </h:panelGroup>
+                        <h:commandButton value="#{cpts['poll.loadParticipantList']}" 
+                                         action="#{editBean.addParticipantList}" 
+                                         onclick="PF('listDialog').hide();"
+                                         disabled="#{empty editBean.mailingLists}"
+                                         class="btn btn-default #{empty editBean.mailingLists? 'disabled' : ''}">
+                            <f:ajax execute="@this"
+                                    render="@this :editForm:pollParticipantPanel"/>
+                        </h:commandButton>
+                        <h:commandButton value="#{cpts['cancel']}" 
+                                         immediate="true"
+                                         onclick="PF('listDialog').hide();"
+                                         class="btn btn-default">
+                            <f:ajax execute="@this" 
+                                    render="@this"/>
+                        </h:commandButton>
+                    </h:panelGroup>
+                    <br />
+                    <br />
+                    <h:panelGroup id="editListPanel" 
+                                  rendered="#{editBean.selectedList != null}">
+                        <p:scrollPanel mode="native" styleClass="participant-scrollbar">
+                            <ui:repeat rendered="#{editBean.selectedList.mailAdressList.size() > 0}"
+                                       value="#{editBean.selectedList.mailAdressList}" var="adress">
+                                <h:panelGrid columns="1">
+                                    <h:outputText value="#{adress}"/>
+                                </h:panelGrid>
+                            </ui:repeat>
+                        </p:scrollPanel>
+                    </h:panelGroup>
+                    <h:panelGroup rendered="#{empty editBean.mailingLists}">
+                        <h:outputText value="#{cpts['list.noLists']}" style="color: #999;"/>
+                    </h:panelGroup>
+                </h:panelGroup>    
+            </p:dialog>   
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="head">
+        <title>Votes - #{cpts['title.vote']}</title>
+    </ui:define>
+    <ui:define name="content">
+        <h:form id="voteForm">
+            <f:event listener="#{voteBean.preRender}" type="postAddToView" />
+            <h:panelGroup rendered="#{!empty voteBean.poll}">
+                <!-- header -->
+                <legend>
+                    <!-- token field -->
+                    <h:panelGroup class="pull-right">
+                        <h:panelGroup class="form-group">
+                            <h:panelGroup class="input-group">
+                                <h:inputText id="token"
+                                             value="#{voteBean.token}"
+                                             class="form-control"
+                                             style="text-align: center; width: 300px;"
+                                             autocomplete="off"/>
+                                <p:watermark for="token" 
+                                             value="#{cpts['login.tokenValue']}"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+
+                    <!-- title + subtitle -->
+                    <h:panelGrid class="h1">
+                        <h:outputText value="#{voteBean.poll.title}"/>
+                        <h:outputText value="#{voteBean.poll.description}"
+                                      class="small"/>
+                    </h:panelGrid>
+                </legend>
+
+                <!-- poll -->
+                <ui:repeat value="#{voteBean.poll.items}" var="item">
+                    <h:panelGroup class="panel-group" layout="block">
+                        <h:panelGroup class="panel panel-default" layout="block">
+                            <!-- header -->
+                            <h:panelGroup class="panel-heading" layout="block">
+                                <!-- poll item title + help -->
+                                <h:panelGrid class="h3">
+                                    <h:outputText value="#{item.title}"/>
+                                    <h:outputFormat value="#{cpts['poll.items.selectOption']}"
+                                                    class="form-control-static small">
+                                        <f:param value="#{item.m}"/>
+                                    </h:outputFormat>
+                                </h:panelGrid>
+
+                                <!-- abstain from vote item -->
+                                <h:panelGroup class="form-group">
+                                    <h:panelGroup class="checkbox">
+                                        <h:selectBooleanCheckbox id="abstainFromItemId" value="#{item.abstainFlag}">
+                                            <f:ajax execute="@this" render="@form"/>
+                                        </h:selectBooleanCheckbox>
+                                        <h:outputLabel for="abstainFromItemId" value="#{cpts['poll.item.abstention']}"/>
+                                    </h:panelGroup>  
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            
+                            <!-- body -->
+                            <h:panelGroup class="panel-body" layout="block">
+                                <!-- vote m of n -->
+                                <h:panelGroup rendered="#{item.mofN}" class="checkbox">
+                                    <h:selectManyCheckbox disabled="#{item.abstainFlag}" layout="pageDirection" value="#{item.decisions}">
+                                        <f:selectItems
+                                            value="#{item.options}"
+                                            var="pollOption"
+                                            itemValue="#{pollOption.shortName}" 
+                                            itemLabel="#{pollOption.label}" 
+                                            itemDescription="#{pollOption.description}"/>
+                                        <f:selectItems rendered="#{item.allowOwnOptions}"
+                                            value="#{item.ownOptions}"
+                                            var="pollOption"
+                                            itemValue="#{pollOption.shortName}" 
+                                            itemLabel="#{pollOption.label}" 
+                                            itemDescription="#{pollOption.description}"/>
+                                        <f:ajax execute="@this"/>
+                                    </h:selectManyCheckbox>
+                                </h:panelGroup>
+
+                                <!-- vote 1 of n -->
+                                <h:panelGroup class="radio"
+                                              rendered="#{!item.mofN}">
+                                    <h:selectOneRadio disabled="#{item.abstainFlag}" layout="pageDirection" value="#{item.decision}">
+                                        <f:selectItems
+                                            value="#{item.options}"
+                                            var="pollOption"
+                                            itemValue="#{pollOption.shortName}" 
+                                            itemLabel="#{pollOption.label}" 
+                                            itemDescription="#{pollOption.description}"/>
+                                        <f:selectItems rendered="#{item.allowOwnOptions}"
+                                            value="#{item.ownOptions}"
+                                            var="pollOption"
+                                            itemValue="#{pollOption.shortName}" 
+                                            itemLabel="#{pollOption.label}" 
+                                            itemDescription="#{pollOption.description}"/>
+                                        <f:ajax execute="@this"/>
+                                    </h:selectOneRadio>
+                                </h:panelGroup>
+
+                                <!-- Own Option -->
+                                <h:panelGroup rendered="#{item.allowOwnOptions and !item.abstainFlag}" class="panel-group form-horizontal" >
+                                    <h:panelGroup layout="block">
+                                        <h:panelGroup class="panel-body">
+                                            <!-- own option -->
+                                            <h:panelGroup layout="block" class="form-group" >
+                                                <h:outputLabel value="#{cpts['poll.item.ownOption']}"
+                                                               class="col-sm-2 control-label"/>
+                                                <h:panelGroup  layout="block" class="col-sm-10" style="width: 60%;">
+                                                    <h:inputText value="#{voteBean.ownOption}" class="form-control"
+                                                                 autocomplete="off">
+                                                        <f:ajax execute="@this" event="blur"/>
+                                                    </h:inputText>
+                                                </h:panelGroup>
+                                            </h:panelGroup>
+
+                                            <!-- own description -->
+                                            <h:panelGroup layout="block" class="form-group" >
+                                                <h:outputLabel value="#{cpts['poll.option.description']}"
+                                                               class="col-sm-2 control-label" />
+                                                <h:panelGroup layout="block" class="col-sm-10" style="width: 60%;">
+                                                    <h:inputTextarea value="#{voteBean.ownDescription}"
+                                                                     rows="3"
+                                                                     class="form-control">
+                                                        <f:ajax execute="@this" event="blur"/>
+                                                    </h:inputTextarea>
+                                                </h:panelGroup>
+                                            </h:panelGroup>
+
+                                            <h:panelGroup layout="block" class="form-group">
+                                                <h:panelGroup class="col-sm-2"/>
+                                                <h:panelGroup class="col-sm-10" style="width: 60%">
+                                                    <h:commandLink class="panel-title " 
+                                                                   action="#{voteBean.addOwnOption(item)}">
+                                                        <f:ajax execute="@this" render="@form"/>
+                                                        <h:panelGroup class="glyphicon glyphicon-plus" style="padding: 10px"/>
+                                                        <h:outputText value="#{cpts['poll.addOption']}" />
+                                                    </h:commandLink>    
+                                                </h:panelGroup>
+                                            </h:panelGroup>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </ui:repeat>
+
+                <!-- buttons for valid poll -->
+                <h:panelGroup class="navbar-right form-padding">
+                    <h:commandButton value="#{cpts['cancel']}" 
+                                     action="organizer/overview.xhtml?faces-redirect=true"
+                                     class="btn btn-default vote-cancel-margin"/>
+                    <h:panelGroup layout="block" class="btn-group">
+                        <h:commandButton value="#{cpts['poll.abstention']}"
+                                         action="#{voteBean.abstainFromVote}"
+                                         class="btn btn-default"/>
+                        <h:commandButton value="#{cpts['poll.vote']}" 
+                                         action="#{voteBean.submitVote}"
+                                         class="btn btn-default"/>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- buttons for invalid poll -->            
+            <h:panelGroup rendered="#{empty voteBean.poll}" class="navbar-right">
+                <h:commandButton value="#{cpts['back']}" 
+                                 action="#{userBean.redirectToRoot}"
+                                 class="btn btn-default"/>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>

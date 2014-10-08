@@ -1,0 +1,310 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="head">
+        <title>Votes - #{cpts['title.preview']}</title>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="previewForm" class="form-horizontal">
+            <!-- basic data -->
+            <h:panelGroup id="pollBasicInfoPanel" layout="block" class="panel-group">
+                <h:panelGroup class="panel panel-default" layout="block">
+                    <!-- header -->
+                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                        <h:outputLabel value="#{cpts['poll.summary']}"/>
+                    </h:panelGroup>
+                    <!-- body -->
+                    <h:panelGroup class="panel-body" layout="block">
+                        <!-- poll title -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel for="pollTitle" 
+                                           value="#{cpts['poll.title']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id="pollTitle"
+                                              value="#{previewBean.poll.title}"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- poll description -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel for="pollDescription" 
+                                           value="#{cpts['poll.description']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id ="pollDescription" 
+                                              value="#{previewBean.poll.description}"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- poll duration -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel value="#{cpts['poll.duration']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="form-control-static col-sm-10">
+                                <h:outputFormat value="#{previewBean.poll.start}">
+                                    <f:convertDateTime type="date" 
+                                                       dateStyle="short" 
+                                                       locale="#{userBean.locale}"/>
+                                </h:outputFormat>
+                                <h:outputText value=" - "/>
+                                <h:outputFormat value="#{previewBean.poll.end}">
+                                    <f:convertDateTime type="date" 
+                                                       dateStyle="short" 
+                                                       locale="#{userBean.locale}"/>
+                                </h:outputFormat>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- poll reminder -->
+                        <h:panelGroup layout="block" class="form-group" >
+                            <h:outputLabel value="#{cpts['poll.date.reminder']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputFormat rendered="#{previewBean.poll.hasReminder()}"
+                                                value="#{previewBean.poll.reminderDate}">
+                                    <f:convertDateTime type="date" 
+                                                       dateStyle="short" 
+                                                       locale="#{userBean.locale}" />
+                                </h:outputFormat>
+                                <h:outputText rendered="#{!previewBean.poll.hasReminder()}"
+                                              value="#{cpts['poll.date.noReminder']}"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- Organizer Panel !-->
+            <h:panelGroup id="pollOrganizerPanel" class="panel-group" layout="block">
+                <h:panelGroup class="panel panel-default" layout="block">
+                    <!-- header -->
+                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                        <h:outputLabel value="#{cpts['poll.organizer']}"/>
+                        <h:commandLink action="#{previewBean.toogleOrganizerPanel}" class="pull-right">
+                            <f:ajax execute="@this" render=":previewForm:pollOrganizerPanel"/>
+                            <h:panelGroup class="glyphicon #{previewBean.organizerPanelShowMore? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
+                        </h:commandLink>
+                    </h:panelGroup>
+
+                    <!-- body -->
+                    <h:panelGroup class="panel-body" layout="block">
+                        <!-- poll contact -->
+                        <h:panelGroup layout="block" class="form-group">
+                            <h:outputLabel for="pollContact" 
+                                           value="#{cpts['poll.contact']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id="pollContact" 
+                                              value="#{previewBean.poll.creator.realname} ("/>
+                                <h:outputLink id="pollContactMail"
+                                              value="mailto:#{previewBean.poll.creator.email}">
+                                    <h:outputText
+                                        value="#{previewBean.poll.creator.email}"/>
+                                </h:outputLink>
+                                <h:outputText value=")"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- organizer info -->
+                        <h:panelGroup layout="block" class="form-group">
+                            <h:outputLabel for="pollOrganizer" 
+                                           value="#{cpts['poll.organizer']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id="pollOrganizer"
+                                              value="#{previewBean.poll.organizers.size()} #{cpts['poll.organizer']}"/>    
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- organizer table -->
+                        <h:panelGroup layout="block" class="form-group" rendered="#{previewBean.organizerPanelShowMore}">
+                            <h:panelGroup class="col-sm-2"/>
+                            <h:panelGroup class="col-sm-5">
+                                <h:dataTable id ="pollAdditionalOrganizer" 
+                                             value="#{previewBean.poll.organizers}" 
+                                             var="organizer"
+                                             class="table">
+                                    <h:column>
+                                        <f:facet name="header">#{cpts['poll.organizerlist']}</f:facet>
+                                            #{organizer.email}
+                                    </h:column>
+                                </h:dataTable>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- Particiants Panel !-->
+            <h:panelGroup id="pollParticipantPanel" class="panel-group" layout="block">
+                <h:panelGroup class="panel panel-default" layout="block">
+                    <!-- header -->
+                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                        <h:outputLabel value="#{cpts['poll.participants']}" />
+                        <h:commandLink action="#{previewBean.toggleParticipantPanel}" class="pull-right">
+                            <f:ajax execute="@this" render=":previewForm:pollParticipantPanel"/>
+                            <h:panelGroup class="glyphicon #{previewBean.organizerPanelShowMore? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
+                        </h:commandLink>
+                    </h:panelGroup>
+
+                    <!-- body -->
+                    <h:panelGroup class="panel-body" layout="block">
+                        <!-- participant tracking -->
+                        <h:panelGroup layout="block" class="form-group">
+                            <h:outputLabel value="#{cpts['poll.participationTracking']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup class="col-sm-10 form-control-static">
+                                <h:outputText value="#{cpts['yes']}"
+                                              rendered="#{previewBean.poll.participationTracking}"/>
+                                <h:outputText value="#{cpts['no']}"
+                                              rendered="#{!previewBean.poll.participationTracking}"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- participant info -->
+                        <h:panelGroup layout="block" class="form-group">
+                            <h:outputLabel for="participants" 
+                                           value="#{cpts['poll.participants']}"
+                                           class="col-sm-2 control-label"/>
+                            <h:panelGroup layout="block" class="col-sm-10 form-control-static">
+                                <h:outputText id="participants"
+                                              value="#{previewBean.poll.participants.size()} #{cpts['poll.participants']}"/>    
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- participant table -->
+                        <h:panelGroup rendered="#{previewBean.participantPanelShowMore}" layout="block" class="form-group">
+                            <h:panelGroup class="col-sm-2"/>
+                            <h:panelGroup class="col-sm-5">
+                                <p:scrollPanel mode="native" 
+                                               styleClass="#{(previewBean.poll.participants.size() > 0)? 'participant-list' : ''}">
+                                    <h:dataTable id ="pollParticipants"
+                                                 rendered="#{previewBean.poll.participants.size() > 0}"
+                                                 value="#{previewBean.poll.participants}"
+                                                 var="participant"
+                                                 class="table">
+                                        <h:column>
+                                            <f:facet name="header">#{cpts['poll.participantList']}</f:facet>
+                                                #{participant.email}
+                                        </h:column>
+                                    </h:dataTable>
+                                </p:scrollPanel>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- Poll Panel !-->
+            <h:panelGroup id="pollPanel" class="panel-group" layout="block">
+                <h:panelGroup class="panel panel-default" layout="block">
+                    <!-- header -->
+                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                        <h:outputLabel value="#{cpts['poll.preview']}" />
+                    </h:panelGroup>
+
+                    <!-- body -->
+                    <h:panelGroup class="panel-body" layout="block">
+                        <c:forEach items="#{previewBean.poll.items}" var="item">
+
+                            <h:panelGroup layout="block" class="panel-group">
+                                <h:panelGroup class="panel panel-default" layout="block">
+                                    <!-- header -->
+                                    <h:panelGroup class="panel-heading panel-title" layout="block">
+                                        <!-- title -->
+                                        <h:panelGrid class="h4">
+                                            <h:outputText value="#{item.title}"/>
+                                            <h:panelGrid class="small">
+                                                <!-- proposal -->
+                                                <h:panelGroup class="panel-group">
+                                                    <h:outputLabel value="#{cpts['poll.item.allowOwnOption']}:"
+                                                                   class="control-label"/>
+                                                    <h:panelGroup class="form-control-static" style="padding-left: 10px;">
+                                                        <h:outputText rendered="#{item.allowOwnOptions}"
+                                                                      value="#{cpts['yes']}"/>
+                                                        <h:outputText rendered="#{!item.allowOwnOptions}"
+                                                                      value="#{cpts['no']}"/>    
+                                                    </h:panelGroup>
+                                                </h:panelGroup>
+
+                                                <!-- decision mode -->
+                                                <h:panelGroup class="panel-group">
+                                                    <h:outputLabel value="#{cpts['poll.items.selectionMode']}:"
+                                                                   class="control-label"/>
+                                                    <h:panelGroup class="form-control-static" style="padding-left: 10px;">
+                                                        <h:outputText value="#{cpts[item.decisionMode.label]}" />
+                                                    </h:panelGroup>
+                                                </h:panelGroup>
+                                            </h:panelGrid>
+                                            <h:outputFormat value="#{cpts['poll.items.selectOption']}"
+                                                            class="form-control-static small">
+                                                <f:param value="#{item.m}"/>
+                                            </h:outputFormat>
+                                        </h:panelGrid>
+
+                                        <!-- Abstentation 
+                                        <h:panelGroup class="panel-group">
+                                            <h:panelGroup class="checkbox">
+                                                <h:selectBooleanCheckbox value="#{item.abstainFlag}">
+                                                    <f:ajax execute="@this"/>
+                                                </h:selectBooleanCheckbox>
+                                                <h:outputLabel value="#{cpts['poll.item.abstention']}"/>
+                                           </h:panelGroup>  
+                                        </h:panelGroup>
+                                        -->
+                                    </h:panelGroup>
+
+                                    <h:panelGroup class="panel-body" layout="block">
+                                        <!-- select m of n -->
+                                        <h:panelGroup layout="block"
+                                                      rendered="#{item.mofN}" class="checkbox">
+                                            <h:selectManyCheckbox layout="pageDirection">
+                                                <f:selectItems
+                                                    value="#{item.options}"
+                                                    var="pollOption"
+                                                    itemValue="#{pollOption.shortName}" 
+                                                    itemLabel="#{pollOption.shortName} (#{pollOption.description})" 
+                                                    itemDescription="#{pollOption.description}"/>
+                                            </h:selectManyCheckbox>
+                                        </h:panelGroup>
+
+                                        <!-- select 1 of n -->
+                                        <h:panelGroup layout="block" 
+                                                      rendered="#{!item.mofN}" 
+                                                      class="radio">
+                                            <h:selectOneRadio layout="pageDirection">
+                                                <f:selectItems
+                                                    value="#{item.options}"
+                                                    var="pollOption"
+                                                    itemValue="#{pollOption.shortName}" 
+                                                    itemLabel="#{pollOption.shortName} (#{pollOption.description})" 
+                                                    itemDescription="#{pollOption.description}"/>
+                                            </h:selectOneRadio>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </c:forEach>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <!-- Buttons !-->
+            <h:panelGroup class="navbar-right form-padding">
+                <h:commandButton action="#{previewBean.editPoll}" value="#{cpts['back']}"
+                                 class="btn btn-default vote-cancel-margin"/>
+                <h:commandButton action="#{previewBean.createPoll}" value="#{cpts['save']}"
+                                 class="btn btn-default"/>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>
