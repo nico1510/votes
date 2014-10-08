@@ -162,14 +162,19 @@ public class PollLifecycleBean implements Serializable {
     /**
      * handler method which is called when the endDate of a vote has come
      * Invalidates all tokens which were not used, sends out a notification
-     * email to the organizers and sets the PollState to FINISHED
+     * email to the organizers and sets the PollState to FINISHED.
+     * Also checks if anonymity of voters can be assured according to the following requirement :
+     * "To ensure anonymity, the results may not be shown when an identification of a participant 
+     * is possible (e.g. when tracking is enabled, and only one participant submitted her decision)"
+     *
      *
      * @param pollID
      */
     public void handleVoteFinished(long pollID) {
+        Long submittedVotes = pollAccess.getVotesCount(pollID);
         tokenAccess.invalidateAllTokensForPoll(pollID);
         Poll poll = pollAccess.find(pollID);
-        boolean success = checkIfVoteSuccessful(poll);
+        boolean success = (!poll.isParticipationTracking() || submittedVotes > 1);
         if (success) {
             poll.setPollState(PollState.FINISHED);
             computeWinners(poll);
@@ -367,32 +372,6 @@ public class PollLifecycleBean implements Serializable {
             Logger.getLogger(PollLifecycleBean.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-    }
-
-
-    /**
-     * checks if anonymity of voters can be assured this is not the case when
-     * participation tracking is enabled and one of the options of any item has
-     * all the votes whereas all the others have 0 votes.
-     *
-     * @param poll
-     * @return
-     */
-    public boolean checkIfVoteSuccessful(Poll poll) {
-        if (!poll.isParticipationTracking()) {
-            return true;
-        } else {
-            for (Item item : poll.getItems()) {
-                ArrayList<ItemOption> options = new ArrayList<>(item.getOptions());
-                Collections.sort(options, Collections.reverseOrder());
-                // options are sorted in descending order according to their votes at this point that means if the option
-                // with the second highest votes alreay has 0 votes then the winner has to have the rest of the votes
-                if(options.get(1).getVotes() == 0 & options.get(0).getVotes() > 0) {
-                    return false;
-                }
-            }
-            return true;
-        }
     }
 
     /**

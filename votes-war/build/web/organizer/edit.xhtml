@@ -240,7 +240,7 @@
                         <h:outputLabel value="#{cpts['poll.participants']}" />
                         <h:commandLink action="#{editBean.toggleParticipantPanel}" class="pull-right">
                             <f:ajax execute="@this" render=":editForm:pollParticipantPanel" />
-                            <h:panelGroup class="glyphicon #{editBean.organizerPanelShowMore? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
+                            <h:panelGroup class="glyphicon #{editBean.participantPanelShowMore? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
                         </h:commandLink>
                     </h:panelGroup>
 
@@ -369,7 +369,7 @@
 
                         <!-- show more -->
                         <h:panelGroup rendered="#{editBean.pollItemPanelShowMore}">
-                            <c:forEach items="#{editBean.poll.items}" var="item">
+                            <ui:repeat value="#{editBean.poll.items}" var="item" id="items">
                                 <!-- poll item -->
                                 <h:panelGroup layout="block" class="well">
                                     <!-- remove poll item -->
@@ -403,7 +403,7 @@
                                                                var="mode"
                                                                itemValue="#{mode}" 
                                                                itemLabel="#{cpts[mode.label]}" />
-                                                <f:ajax render="@this pollItems" 
+                                                <f:ajax render="@this :editForm:pollItems" 
                                                         event="change"/>
                                             </h:selectOneMenu>
                                         </h:panelGroup>
@@ -411,7 +411,7 @@
                                     
                                     <!-- allow own items -->
                                     <h:panelGroup layout="block" class="form-group" rendered="#{!item.yesNo}">
-                                        <h:outputLabel for="pollOwnOptions" 
+                                        <h:outputLabel for=":editForm:items:pollOwnOptions" 
                                                        value="#{cpts['poll.item.ownOption']}"
                                                        class="col-sm-2 control-label"/>
                                         <h:panelGroup class="checkbox col-sm-10">
@@ -419,7 +419,7 @@
                                                 value="#{item.allowOwnOptions}">
                                                 <f:ajax execute="@this"/>
                                             </h:selectBooleanCheckbox>
-                                            <h:outputLabel for="pollOwnOptions" 
+                                            <h:outputLabel for=":editForm:items:pollOwnOptions" 
                                                 value="#{cpts['poll.item.allowOwnOption']}"/>
                                         </h:panelGroup>
                                     </h:panelGroup>
@@ -438,7 +438,7 @@
                                                 <f:attribute name="item" 
                                                              value="#{item}"/>
                                                 <f:ajax execute="@this" 
-                                                        render="@this pollItems" 
+                                                        render="@this :editForm:pollItems" 
                                                         event="change"/>
                                             </h:selectOneMenu>
                                         </h:panelGroup>
@@ -461,14 +461,14 @@
                                     </h:panelGroup>
 
 
-                                    <c:forEach items="#{item.options}" var="option" >
+                                    <ui:repeat value="#{item.options}" var="option" >
                                         <h:panelGroup layout="block" class="panel panel-default">
                                             <h:panelGroup class="panel-body">
                                                 <h:commandLink action="#{item.removeOption(option)}"
                                                                class="panel-title pull-right"
                                                                style="padding-right: 20px;"
                                                                rendered="#{(item.options.size() > item.m) and !item.yesNo and (item.options.size() > 2)}">
-                                                    <f:ajax render="pollItems"/>
+                                                    <f:ajax render=":editForm:pollItems"/>
                                                     <h:panelGroup class="glyphicon glyphicon-remove"/>
                                                 </h:commandLink>
                                                 <h:panelGroup layout="block" class="form-group">
@@ -497,26 +497,26 @@
                                                 </h:panelGroup>
                                             </h:panelGroup>
                                         </h:panelGroup>
-                                    </c:forEach>
+                                    </ui:repeat>
 
                                     <!-- add item option -->
                                     <h:panelGroup>
                                         <h:commandLink class="panel-title" 
                                                        action="#{item.createOption}"
                                                        rendered="#{!item.yesNo}">
-                                            <f:ajax render="pollItems"/>
+                                            <f:ajax render=":editForm:pollItems"/>
                                             <h:panelGroup class="glyphicon glyphicon-plus" style="padding: 10px"/>
                                             <h:outputText value="#{cpts['poll.addOption']}" />
                                         </h:commandLink>
                                     </h:panelGroup>
                                 </h:panelGroup> 
-                            </c:forEach>
+                            </ui:repeat>
 
                             <!-- add poll item -->
                             <h:panelGroup class="pull-right">
                                 <h:commandLink class="panel-title" 
                                                action="#{editBean.poll.createItem}">
-                                    <f:ajax render="pollItems"/>
+                                    <f:ajax render=":editForm:pollItems"/>
                                     <h:panelGroup class="glyphicon glyphicon-plus" style="padding: 10px"/>
                                     <h:outputText value="#{cpts['poll.addItem']}" />
                                 </h:commandLink>

@@ -72,7 +72,22 @@ public class PollAccess extends AbstractAccess<Poll, PollTO> {
         }
 
     }
+    
+    public Long getVotesCount(long pollID) {
+        try {
+            return em.createQuery(
+                    "SELECT COUNT(t) FROM Token t"
+                    + " WHERE t.poll.id = :pollId"
+                    + " AND t.valid = FALSE",
+                    Long.class)
+                    .setParameter("pollId", pollID)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
 
+    }
+    
     public void updateState(Long pollID, PollState newState) {
         em.createQuery("UPDATE Poll p SET p.pollState = :state"
                 + " WHERE p.id = :pollId")

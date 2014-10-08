@@ -449,8 +449,8 @@ public class TestDataGenerator implements Serializable {
             Item savedItem = savedItems.get(0);
             ItemOption opt1 = savedItem.getOptions().get(0);
             
-            savedItem.setAbstentions(5);    // real 5
-            opt1.setVotes(5);
+            savedItem.setAbstentions(9);    // real 5
+            opt1.setVotes(1);
             
             pollAccess.edit(savedPoll);
             
